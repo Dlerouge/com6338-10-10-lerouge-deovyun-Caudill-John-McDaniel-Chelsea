@@ -3,9 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Group 4 Website</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+       
+        body {
+            font-family: "Inter", sans-serif;
+            min-height: 100vh; 
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .globe-placeholder {
+            width: 16rem; 
+            height: 16rem; 
+        }
+        
+        .text-custom-dark {
+            color: #393939;
+        }
+        
+        .globe-image {
+            max-width: 100%;
+            height: auto;
+            display: block; 
+        }
+    </style>
 </head>
 <body>
+
+    <header class="bg-success text-white p-4 shadow rounded-bottom">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 fw-bold mb-0">Group 4 Website</h1>
+                <nav>
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#">IP Locator</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#">Location Search</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
     
+    <main class="container flex-grow-1 py-5">
+        <div class="row g-5 align-items-center justify-content-center"> 
+            <div class="col-12 col-md-4 d-flex justify-content-center">
+                <div class="bg-success rounded-circle globe-placeholder d-flex align-items-center justify-content-center shadow-lg overflow-hidden">
+                    <img src="images/globe.png" alt="Globe" class="globe-image">
+                </div>
+            </div>
+
+            <div class="col-12 col-md-8 text-dark">
+                <p class="text-custom-dark mb-3">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                </p>
+                <p class="text-custom-dark mb-3">
+                    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                </p>
+                <p class="small text-custom-dark text-end mb-0">
+
+                </p>
+            </div>
+        </div>
+    </main>
+
+    
+    <footer class="bg-success text-white p-3 mt-auto shadow-sm rounded-top">
+        <div class="container">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center small">
+                <div class="order-sm-1 order-2 mt-2 mt-sm-0 text-center text-sm-start"> 
+                </div>
+                <div class="order-sm-2 order-1 text-center fs-5 fw-semibold">
+                    Copyright 2025
+                </div>
+                <div class="order-sm-3 order-3 d-none d-sm-block">
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
+
+
+<!---
+<nav class="navbar fixed-top bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Fixed top</a>
+  </div>
+</nav>
