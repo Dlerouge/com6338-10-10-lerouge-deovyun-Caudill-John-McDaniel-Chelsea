@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group 4 Website - Location Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .text-custom-dark {
+            color: #393939;
+        }
+        .event-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #0d6efd;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block; 
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .badge-custom-pink {
+            background-color: #fce4ec;
+            color: #ad1457;
+        }
+        .badge-custom-pink:hover {
+            background-color: #f8bbd0;
+        }
+        .custom-modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .custom-modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-success text-white p-4 shadow rounded-bottom">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 fw-bold mb-0">Group 4 Website</h1>
+                <nav>
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#">IP Locator</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white active fw-bold" aria-current="page" href="#">Location Search</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container flex-grow-1 py-5">
+        <div class="bg-white rounded-3 shadow p-4 p-md-5">
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">Discover Events Near You!</h2>
+
+            <div class="row g-3 mb-4 align-items-center">
+                <div class="col-12 col-sm-8 col-md-9">
+                    <input
+                        type="text"
+                        id="location-input"
+                        placeholder="Enter city or zip code (e.g., New York, 90210)"
+                        class="form-control form-control-lg rounded-3 shadow-sm"
+                    >
+                </div>
+                <div class="col-12 col-sm-4 col-md-3">
+                    <button
+                        id="search-events-button"
+                        class="btn btn-primary btn-lg w-100 shadow-sm rounded-3"
+                    >
+                        Find Events
+                    </button>
+                </div>
+            </div>
+
+            <div id="recent-locations-container" class="mb-5">
+                <h3 class="fs-5 fw-semibold text-gray-700 mb-3">Recent Locations:</h3>
+                <div id="recent-locations-list" class="d-flex flex-wrap gap-2">
+                    <span class="text-muted fst-italic">No recent locations yet.</span>
+                </div>
+            </div>
+
+            <div id="loading-indicator" class="d-none justify-content-center align-items-center py-5">
+                <div class="loading-spinner"></div>
+                <p class="ms-3 text-lg text-secondary mb-0">Searching for events...</p>
+            </div>
+
+            <div id="event-results" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
+            </div>
+
+            <div id="message-box" class="custom-modal">
+                <div class="custom-modal-content">
+                    <h3 id="message-box-title" class="fs-4 fw-bold mb-3 text-dark"></h3>
+                    <p id="message-box-content" class="text-secondary mb-4"></p>
+                    <button id="message-box-close" class="btn btn-primary rounded-3">
+                        OK
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-success text-white p-3 mt-auto shadow-sm rounded-top">
+        <div class="container">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center small">
+                <div class="order-sm-1 order-2 mt-2 mt-sm-0 text-center text-sm-start">
+                </div>
+                <div class="order-sm-2 order-1 text-center fs-5 fw-semibold">
+                    Copyright 2025
+                </div>
+                <div class="order-sm-3 order-3 d-none d-sm-block">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script type="module">
+        const TICKETMASTER_API_KEY = 'JpHMAGjzRqIOYoNYPERm8EvhjK4MU3x3'; 
+        const TICKETMASTER_BASE_URL = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}`;
+
+        const locationInput = document.getElementById('location-input');
+        const searchEventsButton = document.getElementById('search-events-button');
+        const eventResultsDiv = document.getElementById('event-results');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const recentLocationsList = document.getElementById('recent-locations-list');
+        const messageBox = document.getElementById('message-box');
+        const messageBoxTitle = document.getElementById('message-box-title');
+        const messageBoxContent = document.getElementById('message-box-content');
+        const messageBoxCloseButton = document.getElementById('message-box-close');
+
+        const LOCAL_STORAGE_RECENT_LOCATIONS_KEY = 'eventFinderRecentLocations';
+        const MAX_RECENT_LOCATIONS = 5;
+        function showMessageBox(title, message) {
+            messageBoxTitle.textContent = title;
+            messageBoxContent.textContent = message;
+            messageBox.style.display = 'flex';
+        }
+
+        function hideMessageBox() {
+            messageBox.style.display = 'none';
+        }
+
+        messageBoxCloseButton.addEventListener('click', hideMessageBox);
+
+        function loadRecentLocations() {
+            const locations = localStorage.getItem(LOCAL_STORAGE_RECENT_LOCATIONS_KEY);
+            return locations ? JSON.parse(locations) : [];
+        }
+
+        function saveRecentLocation(locationTerm) {
+            let locations = loadRecentLocations();
+            locations = locations.filter(l => l.toLowerCase() !== locationTerm.toLowerCase());
+            locations.unshift(locationTerm);
+            if (locations.length > MAX_RECENT_LOCATIONS) {
+                locations = locations.slice(0, MAX_RECENT_LOCATIONS);
+            }
+            localStorage.setItem(LOCAL_STORAGE_RECENT_LOCATIONS_KEY, JSON.stringify(locations));
+            displayRecentLocations();
+        }
+
+        function displayRecentLocations() {
+            const locations = loadRecentLocations();
+            recentLocationsList.innerHTML = '';
+
+            if (locations.length === 0) {
+                recentLocationsList.innerHTML = '<span class="text-muted fst-italic">No recent locations yet.</span>';
+                return;
+            }
+
+            locations.forEach(term => {
+                const span = document.createElement('span');
+                span.textContent = term;
+                span.classList.add(
+                    'badge', 'badge-custom-pink', 'px-3', 'py-2', 'rounded-pill', 'me-2', 'mb-2',
+                    'cursor-pointer'
+                );
+                span.style.cursor = 'pointer';
+                span.addEventListener('click', () => {
+                    locationInput.value = term;
+                    fetchEvents(term);
+                });
+                recentLocationsList.appendChild(span);
+            });
+        }
+
+        function createEventCard(event) {
+            const colDiv = document.createElement('div');
+            colDiv.classList.add('col'); 
+
+            const card = document.createElement('div');
+            card.classList.add(
+                'card', 'h-100', 'shadow-sm', 'border', 'rounded-3', 'overflow-hidden', 'event-card'
+            );
+
+            const img = document.createElement('img');
+            const imageObj = event.images && event.images.length > 0
+            ? event.images.find(img => img.ratio === '16_9' && img.url) || event.images[0]
+            : null;
+
+            const imageUrl = imageObj ? imageObj.url : 'https://placehold.co/400x250/C0C0C0/505050?text=No+Image';
+
+            img.src = imageUrl;
+
+            img.alt = event.name;
+            img.classList.add('card-img-top', 'object-fit-cover');
+            img.style.height = '180px'; 
+            img.onerror = () => {
+                img.src = 'https://placehold.co/400x250/C0C0C0/505050?text=Image+Load+Error';
+                console.warn(`Failed to load image for event "${event.name}". Original URL: ${imageUrl}`);
+            };
+            card.appendChild(img);
+
+            const body = document.createElement('div');
+            body.classList.add('card-body', 'd-flex', 'flex-column');
+
+            const title = document.createElement('h5');
+            title.textContent = event.name;
+            title.classList.add('card-title', 'mb-2', 'text-dark', 'text-truncate');
+            body.appendChild(title);
+
+            if (event.dates && event.dates.start && event.dates.start.localDate) {
+                const date = document.createElement('p');
+                const dateTime = new Date(`${event.dates.start.localDate}T${event.dates.start.localTime || '00:00:00'}`);
+                date.textContent = `Date: ${dateTime.toLocaleDateString()} ${dateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                date.classList.add('card-text', 'text-muted', 'small', 'mb-1');
+                body.appendChild(date);
+            }
+
+            if (event._embedded && event._embedded.venues && event._embedded.venues.length > 0) {
+                const venue = document.createElement('p');
+                venue.textContent = `Venue: ${event._embedded.venues[0].name || 'N/A'}`;
+                venue.classList.add('card-text', 'text-muted', 'small', 'mb-3');
+                body.appendChild(venue);
+            }
+
+            const viewButton = document.createElement('a');
+            viewButton.href = event.url || '#'; 
+            viewButton.target = "_blank";
+            viewButton.rel = "noopener noreferrer";
+            viewButton.textContent = 'View Details';
+            viewButton.classList.add(
+                'btn', 'btn-info', 'mt-auto', 'w-100', 'rounded-3'
+            );
+            body.appendChild(viewButton);
+
+            card.appendChild(body);
+            colDiv.appendChild(card);
+            return colDiv;
+        }
+
+        function displayEvents(events) {
+            eventResultsDiv.innerHTML = '';
+
+            if (events.length === 0) {
+                eventResultsDiv.innerHTML = `
+                    <div class="col-12">
+                        <p class="text-secondary text-center py-5">
+                            No events found for this location. Try a different city or zip code!
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            events.forEach(event => {
+                console.log('Processing event:', event);
+                const card = createEventCard(event);
+                eventResultsDiv.appendChild(card);
+            });
+        }
+
+        async function fetchEvents(locationQuery) {
+            if (!locationQuery.trim()) {
+                showMessageBox('Search Error', 'Please enter a city or zip code to find events.');
+                return;
+            }
+
+            loadingIndicator.classList.remove('d-none');
+            eventResultsDiv.innerHTML = '';
+
+            let url = TICKETMASTER_BASE_URL;
+
+            if (/^\d{5}(-\d{4})?$/.test(locationQuery.trim())) {
+                url += `&postalCode=${encodeURIComponent(locationQuery.trim())}`;
+            } else {
+                url += `&city=${encodeURIComponent(locationQuery.trim())}`;
+            }
+
+            try {
+                let response;
+                let delay = 1000
+                const maxRetries = 3;
+                for (let i = 0; i < maxRetries; i++) {
+                    response = await fetch(url);
+                    if (response.status !== 429) {
+                        break;
+                    }
+                    console.warn(`Rate limit exceeded, retrying in ${delay / 1000} seconds...`);
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+                }
+                const data = await response.json();
+
+                console.log('Ticketmaster API Response:', data);
+
+                if (data._embedded && data._embedded.events && data._embedded.events.length > 0) {
+                    displayEvents(data._embedded.events);
+                    saveRecentLocation(locationQuery.trim());
+                } else {
+                    displayEvents([]);
+                    showMessageBox('No Results', 'Sorry, no events were found for that location. Try a different city or zip code!');
+                }
+            } catch (error) {
+                console.error('Error fetching events:', error);
+                showMessageBox('API Error', 'Failed to fetch events. Please check your API key, location input, or try again later. Error: ' + error.message);
+                eventResultsDiv.innerHTML = `
+                    <div class="col-12">
+                        <p class="text-danger text-center py-5">
+                            An error occurred while fetching events. Please try again.
+                        </p>
+                    </div>
+                `;
+            } finally {
+                loadingIndicator.classList.add('d-none');
+            }
+        }
+
+        searchEventsButton.addEventListener('click', () => {
+            fetchEvents(locationInput.value);
+        });
+
+        locationInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                fetchEvents(locationInput.value);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', displayRecentLocations);
+
+    </script>
+</body>
+</html>
