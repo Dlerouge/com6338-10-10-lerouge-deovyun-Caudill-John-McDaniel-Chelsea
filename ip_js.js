@@ -113,3 +113,5 @@
          showMessage('Geolocation is not supported by your browser. Please update or use a different browser.', 'error');
      }
  });
+
+ //final updates
