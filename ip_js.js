@@ -1,129 +1,162 @@
 document.addEventListener('DOMContentLoaded', () => {
     const getLocationBtn = document.getElementById('getLocationBtn');
     const locationInfoDiv = document.getElementById('locationInfo');
-    const messageBox = document.getElementById('messageBox');
-    const messageBoxContent = messageBox.querySelector('.message-box');
+    const messageBoxDiv = document.getElementById('messageBox');
+    const messageBoxContent = messageBoxDiv.querySelector('.message-box');
 
-    // Function to display messages in the custom message box
+    const latitudeSpan = document.getElementById('latitude');
+    const longitudeSpan = document.getElementById('longitude');
+    const citySpan = document.getElementById('city');
+    const stateSpan = document.getElementById('state');
+    const countrySpan = document.getElementById('country');
+
+    const API_KEY = '3bf2d8719d95c3ffdd507ee90305830f'; //open weather api
+
+    
     function showMessage(message, type = 'info') {
         messageBoxContent.textContent = message;
-        messageBoxContent.className = `message-box ${type}`; // Set class for styling (info, success, error)
-        messageBox.classList.remove('d-none'); // Show the message box
+        messageBoxContent.className = `message-box ${type}`; 
+        messageBoxDiv.classList.remove('d-none');
     }
 
-    // Function to hide the message box
+    
     function hideMessage() {
-        messageBox.classList.add('d-none'); // Hide the message box
+        messageBoxDiv.classList.add('d-none');
     }
 
-    // Function to fetch IP address and then location details
-    async function fetchLocation() {
-        hideMessage(); // Hide any previous messages
-        showMessage('Fetching your location...', 'info');
-
-        try {
-            // 1. Get the user's IP address
-            const ipResponse = await fetch('https://api.ipify.org?format=json');
-            if (!ipResponse.ok) {
-                throw new Error(`HTTP error! status: ${ipResponse.status}`);
-            }
-            const ipData = await ipResponse.json();
-            const ipAddress = ipData.ip;
-
-            // 2. Use the IP address to get location details from ip-api.com
-            // Note: The user provided an API key for Google Maps, but ip-api.com does not require one for basic lookups.
-            // If a more robust IP geolocation service requiring an API key were used, it would be included here.
-            const locationResponse = await fetch(`http://ip-api.com/json/${ipAddress}`);
-            if (!locationResponse.ok) {
-                throw new Error(`HTTP error! status: ${locationResponse.status}`);
-            }
-            const locationData = await locationResponse.json();
-
-            if (locationData.status === 'success') {
-                document.getElementById('latitude').textContent = locationData.lat;
-                document.getElementById('longitude').textContent = locationData.lon;
-                document.getElementById('city').textContent = locationData.city;
-                document.getElementById('state').textContent = locationData.regionName;
-                document.getElementById('country').textContent = locationData.country;
-
-                locationInfoDiv.classList.remove('d-none'); // Show the location info block
-                showMessage('Location found successfully!', 'success');
-
-                // Initialize and display the map
-                initMap(locationData.lat, locationData.lon);
-
+    
+    function getUserLocation() {
+        return new Promise((resolve, reject) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        });
+                    },
+                    (error) => {
+                        let errorMessage = 'Unable to retrieve your location.';
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage = 'User denied the request for Geolocation.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage = 'Location information is unavailable.';
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage = 'The request to get user location timed out.';
+                                break;
+                            case error.UNKNOWN_ERROR:
+                                errorMessage = 'An unknown error occurred.';
+                                break;
+                        }
+                        reject(new Error(errorMessage));
+                    }
+                );
             } else {
-                throw new Error(`Location API error: ${locationData.message}`);
+                reject(new Error('Geolocation is not supported by your browser.'));
             }
+        });
+    }
 
+   
+    async function reverseGeocode(latitude, longitude) {
+        const url = `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${API_KEY}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const location = data[0];
+                return {
+                    city: location.name,
+                    state: location.state || 'N/A',
+                    country: location.country
+                };
+            } else {
+                throw new Error('No location data found for the given coordinates.');
+            }
         } catch (error) {
-            console.error('Error fetching location:', error);
-            showMessage(`Failed to retrieve location: ${error.message}. Please try again later.`, 'error');
-            locationInfoDiv.classList.add('d-none'); // Hide the location info block on error
+            console.error('Error during reverse geocoding:', error);
+            throw new Error(`Could not retrieve location details: ${error.message}`);
         }
     }
 
-    // Google Maps Initialization
-    let map;
-    let marker;
-
-    async function initMap(lat, lon) {
-        // The API key is provided by the user: AIzaSyCKpvVvZeGOVlSYsCbfWVOgh7NgK2fXSyE
-        // It's loaded dynamically for security and flexibility.
-        const googleMapsApiKey = 'AIzaSyCKpvVvZeGOVlSYsCbfWVOgh7NgK2fXSyE';
-
-        // Load the Google Maps API script dynamically
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&callback=initMapCallback`;
-        script.async = true;
-        document.head.appendChild(script);
-
-        // Define the callback function globally or attach to window
-        window.initMapCallback = () => {
-            const mapOptions = {
-                center: { lat: lat, lng: lon },
-                zoom: 10, // Adjust zoom level as needed
-                mapTypeId: 'roadmap' // Can be 'roadmap', 'satellite', 'hybrid', 'terrain'
-            };
-
-            // Check if map container exists
-            let mapContainer = document.getElementById('map');
-            if (!mapContainer) {
-                // If map container doesn't exist, create it
-                mapContainer = document.createElement('div');
-                mapContainer.id = 'map';
-                mapContainer.style.width = '100%';
-                mapContainer.style.height = '400px'; // Set a default height
-                mapContainer.style.borderRadius = '0.5rem';
-                mapContainer.style.marginTop = '1rem';
-
-                const locationInfoCardBody = document.querySelector('#locationInfo .card-body');
-                if (locationInfoCardBody) {
-                    locationInfoCardBody.appendChild(mapContainer);
-                } else {
-                    console.error('Could not find location info card body to append map.');
-                    return;
-                }
-            }
-
-            map = new google.maps.Map(mapContainer, mapOptions);
-
-            marker = new google.maps.Marker({
-                position: { lat: lat, lng: lon },
-                map: map,
-                title: 'Your Location'
-            });
-        };
+    
+    function displayLocation(locationData) {
+        latitudeSpan.textContent = locationData.latitude.toFixed(4);
+        longitudeSpan.textContent = locationData.longitude.toFixed(4);
+        citySpan.textContent = locationData.city;
+        stateSpan.textContent = locationData.state;
+        countrySpan.textContent = locationData.country;
+        locationInfoDiv.classList.remove('d-none'); 
     }
 
+   
+    function storeLocation(locationData) {
+        try {
+            localStorage.setItem('userLocation', JSON.stringify(locationData));
+            console.log('Location stored in local storage:', locationData);
+        } catch (e) {
+            console.error('Error storing location in local storage:', e);
+            showMessage('Could not save location data to local storage.', 'error');
+        }
+    }
 
-    // Event listener for the button
-    if (getLocationBtn) {
-        getLocationBtn.addEventListener('click', fetchLocation);
-    } else {
-        console.error('Get Location button not found!');
+    
+    function getStoredLocation() {
+        try {
+            const storedData = localStorage.getItem('userLocation');
+            return storedData ? JSON.parse(storedData) : null;
+        } catch (e) {
+            console.error('Error retrieving location from local storage:', e);
+            return null;
+        }
+    }
+
+    
+    getLocationBtn.addEventListener('click', async () => {
+        hideMessage(); 
+        showMessage('Fetching your location...', 'info');
+
+        try {
+            
+            let locationData = getStoredLocation();
+
+            if (locationData) {
+                showMessage('Location retrieved from local storage.', 'success');
+                displayLocation(locationData);
+            } else {
+                
+                const coords = await getUserLocation();
+                const geoData = await reverseGeocode(coords.latitude, coords.longitude);
+
+                locationData = {
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    city: geoData.city,
+                    state: geoData.state,
+                    country: geoData.country
+                };
+
+                displayLocation(locationData);
+                storeLocation(locationData); 
+                showMessage('Location successfully fetched and displayed!', 'success');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage(`Error: ${error.message}`, 'error');
+            locationInfoDiv.classList.add('d-none'); 
+        }
+    });
+
+    
+    const initialStoredLocation = getStoredLocation();
+    if (initialStoredLocation) {
+        displayLocation(initialStoredLocation);
+        showMessage('Location loaded from previous session.', 'info');
     }
 });
-
-
- //final updates
